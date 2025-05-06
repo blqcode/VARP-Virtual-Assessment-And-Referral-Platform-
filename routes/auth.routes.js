@@ -14,7 +14,7 @@ router.post('/login', authController.login);
 router.post('/logout', authenticate, authController.logout);
 router.get('/user', authenticate, authController.getCurrentUser);
 
-// Admin-only route example
+// Admin-only route 
 router.get('/admin', authenticate, roleCheck(['admin']), (req, res) => {
   res.json({ message: 'Admin dashboard' });
 });

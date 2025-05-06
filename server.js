@@ -41,5 +41,8 @@ app.use((err, req, res, next) => {
     message: 'Internal server error'
   });
 });
+app.listen(3000,()=>{
+  console.log('runningg on port')
+});
 
 export default app;

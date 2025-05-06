@@ -1,13 +1,12 @@
 {
   "name": "varp-virtual-assessment-and-referral-platform-",
   "version": "1.0.0",
-  "type":"module",
+  "type": "module",
   "main": "sever.js",
   "scripts": {
     "start": "node server.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/blqcode/VARP-Virtual-Assessment-And-Referral-Platform-"
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
+    "test:watch": "npm test -- --watch"
   },
   "author": "blqcode",
   "license": "MIT",
@@ -21,5 +20,11 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^7.1.0"
   }
-}}
+}
