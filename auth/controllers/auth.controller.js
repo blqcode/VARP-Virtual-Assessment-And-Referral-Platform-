@@ -1,9 +1,15 @@
 import AuthService from '../services/auth.service.js';
 import { registerSchema, loginSchema } from '../validators/auth.validator.js';
+import { ValidationError } from '../../utils/errors.js';
 
 export default class AuthController {
   constructor() {
     this.authService = new AuthService();
+    // Bind methods to maintain 'this' context
+    this.register = this.register.bind(this);
+    this.login = this.login.bind(this);
+    this.logout = this.logout.bind(this);
+    this.getCurrentUser = this.getCurrentUser.bind(this);
   }
 
   async register(req, res, next) {

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .response-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .response-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .response-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        .status-error {
+            background-color: #e74c3c;
+            color: white;
+        }
+        #response {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .nav-links a {
+            color: #3498db;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .auth-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .auth-status.not-authenticated {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .auth-status.authenticated {
+            background-color: #27ae60;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Logout API Test</h1>
+        
+        <div class="nav-links">
+            <a href="/api-test/register.html">Register</a>
+            <a href="/api-test/login.html">Login</a>
+            <a href="/api-test/user.html">Get User</a>
+            <a href="/api-test/logout.html">Logout</a>
+        </div>
+
+        <div id="authStatus" class="auth-status not-authenticated">
+            Not authenticated. Please login first.
+        </div>
+
+        <button id="logoutBtn" onclick="logout()">Logout</button>
+
+        <div class="response-container">
+            <div class="response-header">
+                <span class="response-title">API Response</span>
+                <span id="responseStatus" class="response-status"></span>
+            </div>
+            <pre id="response">No response yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/auth';
+
+        // Check authentication status on page load
+        window.onload = function() {
+            const token = localStorage.getItem('token');
+            const authStatus = document.getElementById('authStatus');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (token) {
+                authStatus.textContent = 'Authenticated. You can logout.';
+                authStatus.className = 'auth-status authenticated';
+                logoutBtn.disabled = false;
+            } else {
+                authStatus.textContent = 'Not authenticated. Please login first.';
+                authStatus.className = 'auth-status not-authenticated';
+                logoutBtn.disabled = true;
+            }
+        };
+
+        // Display response with styling
+        function displayResponse(data, status) {
+            const responseElement = document.getElementById('response');
+            const statusElement = document.getElementById('responseStatus');
+            
+            responseElement.textContent = JSON.stringify(data, null, 2);
+            
+            if (status >= 200 && status < 300) {
+                statusElement.textContent = `Status: ${status} (Success)`;
+                statusElement.className = 'response-status status-success';
+            } else {
+                statusElement.textContent = `Status: ${status} (Error)`;
+                statusElement.className = 'response-status status-error';
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    displayResponse({ error: 'No authentication token found' }, 401);
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const data = await response.json();
+                displayResponse(data, response.status);
+
+                if (response.ok) {
+                    // Clear token and update UI
+                    localStorage.removeItem('token');
+                    const authStatus = document.getElementById('authStatus');
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    authStatus.textContent = 'Logged out successfully.';
+                    authStatus.className = 'auth-status not-authenticated';
+                    logoutBtn.disabled = true;
+                }
+            } catch (error) {
+                displayResponse({ error: error.message }, 500);
+            }
+        }
+    </script>
+</body>
+</html> 

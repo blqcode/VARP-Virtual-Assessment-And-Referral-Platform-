@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .response-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .response-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .response-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-success {
+            background-color: #27ae60;
+            color: white;
+        }
+        .status-error {
+            background-color: #e74c3c;
+            color: white;
+        }
+        #response {
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .nav-links a {
+            color: #3498db;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login API Test</h1>
+        
+        <div class="nav-links">
+            <a href="/api-test/register.html">Register</a>
+            <a href="/api-test/login.html">Login</a>
+            <a href="/api-test/user.html">Get User</a>
+            <a href="/api-test/logout.html">Logout</a>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="login-number">Registration Number</label>
+                <input type="text" id="login-number" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="response-container">
+            <div class="response-header">
+                <span class="response-title">API Response</span>
+                <span id="responseStatus" class="response-status"></span>
+            </div>
+            <pre id="response">No response yet...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/auth';
+
+        // Display response with styling
+        function displayResponse(data, status) {
+            const responseElement = document.getElementById('response');
+            const statusElement = document.getElementById('responseStatus');
+            
+            responseElement.textContent = JSON.stringify(data, null, 2);
+            
+            if (status >= 200 && status < 300) {
+                statusElement.textContent = `Status: ${status} (Success)`;
+                statusElement.className = 'response-status status-success';
+            } else {
+                statusElement.textContent = `Status: ${status} (Error)`;
+                statusElement.className = 'response-status status-error';
+            }
+        }
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const formData = {
+                    regNumber: document.getElementById('login-number').value,
+                    password: document.getElementById('login-password').value
+                };
+
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                displayResponse(data, response.status);
+
+                if (response.ok) {
+                    // Store token if login is successful
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                    }
+                    // Clear form
+                    e.target.reset();
+                }
+            } catch (error) {
+                displayResponse({ error: error.message }, 500);
+            }
+        });
+    </script>
+</body>
+</html> 

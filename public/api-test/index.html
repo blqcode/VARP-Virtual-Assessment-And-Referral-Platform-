@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VARP Auth API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .endpoint-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .endpoint-card:hover {
+            transform: translateY(-5px);
+        }
+        .endpoint-card h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .endpoint-card p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .endpoint-card a {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .endpoint-card a:hover {
+            background-color: #2980b9;
+        }
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .status.online {
+            background-color: #27ae60;
+            color: white;
+        }
+        .status.offline {
+            background-color: #e74c3c;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VARP Authentication API Test</h1>
+        
+        <div id="apiStatus" class="status offline">
+            Checking API status...
+        </div>
+
+        <div class="endpoints">
+            <div class="endpoint-card">
+                <h2>Register</h2>
+                <p>Create a new user account with name, email, registration number, and role.</p>
+                <a href="/api-test/register.html">Test Register</a>
+            </div>
+            
+            <div class="endpoint-card">
+                <h2>Login</h2>
+                <p>Authenticate with registration number and password to get a JWT token.</p>
+                <a href="/api-test/login.html">Test Login</a>
+            </div>
+            
+            <div class="endpoint-card">
+                <h2>Get User Info</h2>
+                <p>Retrieve the current user's information using the JWT token.</p>
+                <a href="/api-test/user.html">Test Get User</a>
+            </div>
+            
+            <div class="endpoint-card">
+                <h2>Logout</h2>
+                <p>Invalidate the current JWT token and end the session.</p>
+                <a href="/api-test/logout.html">Test Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check API status
+        async function checkApiStatus() {
+            const statusElement = document.getElementById('apiStatus');
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    }
+                });
+                
+                if (response.status === 401) {
+                    statusElement.textContent = 'API is online (Authentication required)';
+                    statusElement.className = 'status online';
+                } else {
+                    statusElement.textContent = 'API is online';
+                    statusElement.className = 'status online';
+                }
+            } catch (error) {
+                statusElement.textContent = 'API is offline';
+                statusElement.className = 'status offline';
+            }
+        }
+
+        // Check status on page load
+        checkApiStatus();
+        
+        // Check status every 30 seconds
+        setInterval(checkApiStatus, 30000);
+    </script>
+</body>
+</html> 

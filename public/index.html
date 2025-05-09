@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth API Test Screen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .form-container {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .response-container {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, select {
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+        .success {
+            color: green;
+            margin-top: 5px;
+        }
+        #response {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Authentication API Test Screen</h1>
+    
+    <div class="container">
+        <div class="form-container">
+            <h2>Register</h2>
+            <form id="registerForm">
+                <input type="text" id="regName" placeholder="Name" required>
+                <input type="email" id="regEmail" placeholder="Email" required>
+                <input type="text" id="regNumber" placeholder="Registration Number (9 digits)" required pattern="\d{9}">
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <select id="regRole" required>
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit">Register</button>
+            </form>
+
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="text" id="loginRegNumber" placeholder="Registration Number" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+
+            <h2>User Actions</h2>
+            <button id="getUserBtn" disabled>Get User Info</button>
+            <button id="logoutBtn" disabled>Logout</button>
+        </div>
+
+        <div class="response-container">
+            <h2>API Response</h2>
+            <pre id="response">No response yet</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/auth';
+        let token = localStorage.getItem('token');
+
+        // Update button states based on authentication
+        function updateButtonStates() {
+            const isAuthenticated = !!token;
+            document.getElementById('getUserBtn').disabled = !isAuthenticated;
+            document.getElementById('logoutBtn').disabled = !isAuthenticated;
+        }
+
+        // Display response
+        function displayResponse(data) {
+            document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Handle errors
+        function handleError(error) {
+            displayResponse({ error: error.message || 'An error occurred' });
+        }
+
+        // Register form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('regName').value,
+                        email: document.getElementById('regEmail').value,
+                        regNumber: document.getElementById('regNumber').value,
+                        password: document.getElementById('regPassword').value,
+                        role: document.getElementById('regRole').value
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                displayResponse(data);
+                if (data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    updateButtonStates();
+                }
+            } catch (error) {
+                handleError(error);
+            }
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        regNumber: document.getElementById('loginRegNumber').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                displayResponse(data);
+                if (data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    updateButtonStates();
+                }
+            } catch (error) {
+                handleError(error);
+            }
+        });
+
+        // Get user info
+        document.getElementById('getUserBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_URL}/user`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                displayResponse(data);
+            } catch (error) {
+                handleError(error);
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_URL}/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                displayResponse(data);
+                token = null;
+                localStorage.removeItem('token');
+                updateButtonStates();
+            } catch (error) {
+                handleError(error);
+            }
+        });
+
+        // Initialize button states
+        updateButtonStates();
+    </script>
+</body>
+</html> 

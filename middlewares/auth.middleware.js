@@ -1,17 +1,35 @@
-import { verifyToken } from '../utils/jwt.js';
+import jwt from 'jsonwebtoken';
 import { UnauthorizedError } from '../utils/errors.js';
 
 export const authenticate = (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
+    // 1. Get token from header
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
       throw new UnauthorizedError('Authentication token missing');
     }
 
-    const decoded = verifyToken(token);
-    req.user = decoded;
+    // 2. Extract token
+    const token = authHeader.split(' ')[1];
+    
+    // 3. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    
+    // 4. Attach user to request
+    req.user = {
+      id: decoded.id,
+      role: decoded.role
+    };
+    
     next();
   } catch (error) {
-    next(new UnauthorizedError('Invalid or expired token'));
+    // Handle specific JWT errors
+    if (error.name === 'TokenExpiredError') {
+      return next(new UnauthorizedError('Token expired'));
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return next(new UnauthorizedError('Invalid token'));
+    }
+    next(error);
   }
 };

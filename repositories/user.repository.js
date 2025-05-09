@@ -1,15 +1,10 @@
-import User from '../models/user.model.js';
-import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
 import { ConflictError, NotFoundError } from '../utils/errors.js';
 
 export default class UserRepository {
   async create(userData) {
     try {
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
-      const user = new User({
-        ...userData,
-        passwordHash: hashedPassword
-      });
+      const user = new User(userData);
       return await user.save();
     } catch (error) {
       if (error.code === 11000) {
